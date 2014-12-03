@@ -1,0 +1,39 @@
+{
+  "name": "Moki-ROV",
+  "version": "0.0.1",
+  "description": "Remote-control environment for a ROV, Raspberry PI powered.",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moki38/Moki-ROV.git"
+  },
+  "keywords": [
+    "ROV",
+    "Raspberry PI",
+    "PI",
+    "RPI",
+    "RCE ROV PI"
+  ],
+  "dependencies": {
+    "express": ">= 4.6.1",
+    "socket.io": ">= 1.0.6",
+    "i2c": ">= 0.1.4",
+    "sleep": ">= 1.1.8",
+    "shelljs": ">= 0.3.0",
+    "async": "0.1.22"
+  },
+  "author": {
+	"name": "Eric van Dijken <eric@team-moki.nl>"
+	},
+  "contributors": [
+    {
+      "name": "None",
+      "email": "@",
+      "url": "https://github.com/none"
+    }
+  ],
+"scripts": {
+        "start": "node server.js"
+    },
+  "license": "MIT"
+}
