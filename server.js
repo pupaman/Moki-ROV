@@ -25,7 +25,7 @@ var PCA9685_ADDR=0x41;
 var PCA9685_INIT=false;
 var MPU9150_ADDR=0x68;
 var MPU9150_INIT=false;
-var MS5803_ADDR=0xa0;
+var MS5803_ADDR=0x76;
 var MS5803_INIT=false;
 var MCP3424_ADDR1=0x6c;
 var MCP3424_ADDR1=0x6d;
@@ -71,8 +71,8 @@ var imuserver = dgram.createSocket('udp4');
 
 MS5803_INIT = i2c_sensor_check(MS5803_ADDR);
 if (MS5803_INIT) {
-  var makeMS5803 = require("ms5803" );
-  var ms5803 = makeMS5803();
+  var makeMS5803 = require("ms5803_rpi" );
+  var ms5803 = new makeMS5803({"address": MS5803_ADDR, "device": i2c_device' });
 } else {
   console.log("MS5803 Not found, disabled!");
 }
