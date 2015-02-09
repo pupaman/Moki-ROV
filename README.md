@@ -42,16 +42,27 @@ Moki-ROV requires a recent nodejs (built and tested with node > 0.10) (http://el
 as well as[npm](https://npmjs.org/) for module dependency management.
 
 ```
+sudo su -
 git clone https://github.com/Moki38/Moki-ROV.git
-cd ROV-PI
-npm install
+cd Moki-ROV
+npm install .
+git clone https://github.com/richards-tech/RTIMULib.git
+cd RTIMULib
+patch -p1 < ../RTIMULib.patch
+make install
+cd ../../..
+apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
+git clone https://github.com/jacksonliam/mjpg-streamer.git
+cd mjpg-streamer/mjpg-streamer-experimental
+make install
 ```
 
 ## Usage
 
 1. Edit `server.js` => Change the IP (app.set("ipaddr", "192.168.1.30");), to the ip from your PI.
 2. Edit `index..html` => Change the IP (iframe), to the ip/port from your mjpg-stream.
-2. Run `mjpg-stream`
+2. Run `mjpg-stream` => ./mjpg_streamer -i "./input_uvc.so" -o "./output_http.so"
+3. Run `RTIMULibDrive` => RTIMULibDrive &
 3. Run `node server.js`
 4. Point your browser to http://<ROV-PI-IP>:3000/
 
