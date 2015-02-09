@@ -4,21 +4,6 @@ remote: Counting objects: 1091, done.
 remote: Total 1091 (delta 0), reused 0 (delta 0)
 Receiving objects: 100% (1091/1091), 1.22 MiB | 232 KiB/s, done.
 Resolving deltas: 100% (760/760), done.
-root@pihome:~/Moki-ROV# patch -p1 < ./R
-README.md       RTIMULib/       RTIMULib.patch
-root@pihome:~/Moki-ROV# patch -p1 < ./R
-README.md       RTIMULib/       RTIMULib.patch
-root@pihome:~/Moki-ROV# patch -p1 < ./RTIMULib.patch
-can't find file to patch at input line 4
-Perhaps you used the wrong -p or --strip option?
-The text leading up to this was:
---------------------------
-|diff -druN RTIMULib.orig/Linux/RTIMULibDrive/RTIMULibDrive.cpp RTIMULib/Linux/RTIMULibDrive/RTIMULibDrive.cpp
-|--- RTIMULib.orig/Linux/RTIMULibDrive/RTIMULibDrive.cpp 2015-02-01 10:15:04.000000000 +0100
-|+++ RTIMULib/Linux/RTIMULibDrive/RTIMULibDrive.cpp      2015-02-01 10:13:26.000000000 +0100
---------------------------
-File to patch: ^C
-root@pihome:~/Moki-ROV# cd RTIMULib/
 root@pihome:~/Moki-ROV/RTIMULib# patch -p1 < ../RTIMULib.patch
 patching file Linux/RTIMULibDrive/RTIMULibDrive.cpp
 patching file RTIMULib/RTMath.cpp
