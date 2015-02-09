@@ -1,0 +1,62 @@
+root@pihome:~/Moki-ROV# git clone https://github.com/richards-tech/RTIMULib.git
+Cloning into 'RTIMULib'...
+remote: Counting objects: 1091, done.
+remote: Total 1091 (delta 0), reused 0 (delta 0)
+Receiving objects: 100% (1091/1091), 1.22 MiB | 232 KiB/s, done.
+Resolving deltas: 100% (760/760), done.
+root@pihome:~/Moki-ROV# patch -p1 < ./R
+README.md       RTIMULib/       RTIMULib.patch
+root@pihome:~/Moki-ROV# patch -p1 < ./R
+README.md       RTIMULib/       RTIMULib.patch
+root@pihome:~/Moki-ROV# patch -p1 < ./RTIMULib.patch
+can't find file to patch at input line 4
+Perhaps you used the wrong -p or --strip option?
+The text leading up to this was:
+--------------------------
+|diff -druN RTIMULib.orig/Linux/RTIMULibDrive/RTIMULibDrive.cpp RTIMULib/Linux/RTIMULibDrive/RTIMULibDrive.cpp
+|--- RTIMULib.orig/Linux/RTIMULibDrive/RTIMULibDrive.cpp 2015-02-01 10:15:04.000000000 +0100
+|+++ RTIMULib/Linux/RTIMULibDrive/RTIMULibDrive.cpp      2015-02-01 10:13:26.000000000 +0100
+--------------------------
+File to patch: ^C
+root@pihome:~/Moki-ROV# cd RTIMULib/
+root@pihome:~/Moki-ROV/RTIMULib# patch -p1 < ../RTIMULib.patch
+patching file Linux/RTIMULibDrive/RTIMULibDrive.cpp
+patching file RTIMULib/RTMath.cpp
+root@pihome:~/Moki-ROV/RTIMULib# cd Linux/RTIMULibDrive
+root@pihome:~/Moki-ROV/RTIMULib/Linux/RTIMULibDrive# make
+g++ -c -o objects/RTIMULibDrive.o RTIMULibDrive.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+RTIMULibDrive.cpp: In function ât main()âRTIMULibDrive.cpp:34:9: warning: variable âmpleRateâet but not used [-Wunused-but-set-variable]
+g++ -c -o objects/RTMath.o ../../RTIMULib/RTMath.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+../../RTIMULib/RTMath.cpp:52:13: warning: unused parameter âbelâ-Wunused-parameter]
+g++ -c -o objects/RTIMUHal.o ../../RTIMULib/RTIMUHal.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTFusion.o ../../RTIMULib/RTFusion.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTFusionKalman4.o ../../RTIMULib/RTFusionKalman4.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTFusionRTQF.o ../../RTIMULib/RTFusionRTQF.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUSettings.o ../../RTIMULib/RTIMUSettings.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUAccelCal.o ../../RTIMULib/RTIMUAccelCal.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUMagCal.o ../../RTIMULib/RTIMUMagCal.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMU.o ../../RTIMULib/IMUDrivers/RTIMU.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUNull.o ../../RTIMULib/IMUDrivers/RTIMUNull.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUMPU9150.o ../../RTIMULib/IMUDrivers/RTIMUMPU9150.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUMPU9250.o ../../RTIMULib/IMUDrivers/RTIMUMPU9250.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUGD20HM303D.o ../../RTIMULib/IMUDrivers/RTIMUGD20HM303D.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUGD20M303DLHC.o ../../RTIMULib/IMUDrivers/RTIMUGD20M303DLHC.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMUGD20HM303DLHC.o ../../RTIMULib/IMUDrivers/RTIMUGD20HM303DLHC.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTIMULSM9DS0.o ../../RTIMULib/IMUDrivers/RTIMULSM9DS0.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTPressure.o ../../RTIMULib/IMUDrivers/RTPressure.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTPressureBMP180.o ../../RTIMULib/IMUDrivers/RTPressureBMP180.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -c -o objects/RTPressureLPS25H.o ../../RTIMULib/IMUDrivers/RTPressureLPS25H.cpp -pipe -O2 -Wall -W  -I. -I../../RTIMULib
+g++ -Wl,-O1 -o Output/RTIMULibDrive objects/RTIMULibDrive.o objects/RTMath.o objects/RTIMUHal.o objects/RTFusion.o objects/RTFusionKalman4.o objects/RTFusionRTQF.o objects/RTIMUSettings.o objects/RTIMUAccelCal.o objects/RTIMUMagCal.o objects/RTIMU.o objects/RTIMUNull.o objects/RTIMUMPU9150.o objects/RTIMUMPU9250.o objects/RTIMUGD20HM303D.o objects/RTIMUGD20M303DLHC.o objects/RTIMUGD20HM303DLHC.o objects/RTIMULSM9DS0.o objects/RTPressure.o objects/RTPressureBMP180.o objects/RTPressureLPS25H.o  -L/usr/lib/arm-linux-gnueabihf
+root@pihome:~/Moki-ROV/RTIMULib/Linux/RTIMULibDrive# make install
+install -m 755 -p "Output/RTIMULibDrive" "/usr/local/bin/RTIMULibDrive"
+strip "/usr/local/bin/RTIMULibDrive"
+root@pihome:~/Moki-ROV/RTIMULib/Linux/RTIMULibDrive# "/usr/local/bin/RTIMULibDrive" &
+[1] 6014
+root@pihome:~/Moki-ROV/RTIMULib/Linux/RTIMULibDrive# Settings file not found. Using defaults and creating settings file
+Detected MPU9250 at standard address
+Using fusion algorithm RTQF
+min/max compass calibration not in use
+Ellipsoid compass calibration not in use
+Accel calibration not in use
+MPU-9250 init complete
+

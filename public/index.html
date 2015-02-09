@@ -83,14 +83,14 @@
             if(cam1IsDown) return;
             cam1IsDown = true;
 	    camera = "Front";
-	    document.getElementById('camera').src = src="http://10.10.10.10:8080/javascript_simple.html";
+	    document.getElementById('camera').src = src="http://192.168.1.31:8080/javascript_simple.html";
             //socket.emit('keydown', 'cam1');
             break;
           case 50: // 2
             if(cam2IsDown) return;
             cam2IsDown = true;
 	    camera = "Back";
-	    document.getElementById('camera').src = src="http://10.10.10.10:8081/javascript_simple.html";
+	    document.getElementById('camera').src = src="http://192.168.1.31:8081/javascript_simple.html";
             //socket.emit('keydown', 'cam2');
             break;
           case 48: // 0
@@ -245,7 +245,7 @@ iframe{
 
   <body bgcolor="#00000000">
 
- <iframe id="camera" src="http://10.10.10.10:8080/javascript_simple.html" allowtransparency="true"></iframe>
+ <iframe id="camera" src="http://192.168.1.31:8080/javascript_simple.html" allowtransparency="true"></iframe>
 
 <div id="canvasesdiv" style="position:relative; width:900px; height:600px">
 <canvas id="rovCanvas" width="900px" height="600px" style="z-index: 100"></canvas>
@@ -253,11 +253,11 @@ iframe{
 
 <script type="text/javascript">  
 var cam1_window = function() {
-window.open("http://10.10.10.10:8080/javascript_simple.html", "CAMERA 1", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
+window.open("http://192.168.1.31:8080/javascript_simple.html", "CAMERA 1", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
 window.blur();
 }
 var cam2_window = function() {
-window.open("http://10.10.10.10:8081/javascript_simple.html", "CAMERA 2", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
+window.open("http://192.168.1.31:8081/javascript_simple.html", "CAMERA 2", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
 window.blur();
 }
 </script>

@@ -1,62 +1,50 @@
-# ROV-PI
+# Moki-ROV 
 
-Pilot your ROV-PI directly from your browser. 
+Pilot your ROV-PI directly from your browser, this will ofcourse only work if you have some kind of network connection to your ROV.
+In the setup, in which this software was writen, i am using 100Mb ethernet and Google Chrome as browser (as this one supports the Xpad)
+The browser screen will display a HUD, with all the sensor details you have on board your ROV.
 
 If you encounter an issue; please mail details to <rov-pi@team-moki.nl>
 
-This software was build and tested on a Raspberry PI (Model B+)
+This software was build on a Raspberry PI (Model B+)
+And tested on:
+- Raspberry PI (Model B+)
+- Banana Pro
 
-## Current plugins
+## Currenty supported/tested 
 
-* **[servo](plugings/servo)**
-	Controle I2C servo boards
-	* Adafruit 16-Channel 12-bit PWM/Servo Driver - I2C interface - PCA9685 (http://www.adafruit.com/product/815)
+* Adafruit 16-Channel 12-bit PWM/Servo Driver - I2C interface - PCA9685 (http://www.adafruit.com/product/815)
+	•Pin 1/2 Camara movement x/y
+	•Pin 3/4 Light Relay (http://www.kiwi-electronics.nl/tweekanaals-relais-module-5v)
 
-* **[MS5803-14BA](plugins/MS5803-14BA)** (http://store.openrov.com/products/openrov-imu-depth-module)
-	OpenROV Pressure sensor 
+* OpenROV Pressure sensor [MS5803-14BA] ** (http://store.openrov.com/products/openrov-imu-depth-module)
 	•Senses down up to 130m depth
 	•Precision to about 1cm of depth
 	•Integrated temperature sensor precise to about 0.1C
 
-* **[hud](plugins/hud)** to visualize a head-up display with artificial horizon, compass, depthmeter, etc. 
-
-* **[MPU-9150](plugins/MPU-9150)** (http://store.openrov.com/products/openrov-imu-depth-module)
-	OpenROV 9-axis IMU
+* MPU-9150 9-axis IMU (http://store.openrov.com/products/openrov-imu-depth-module)
 	•3-axis magnetometer for detection of heading (regardless of orientation)
 	•3-axis accelerometer to detect roll and pitch
 	•3 axis gyroscope to detect rotational rate
 
-## Planned plugins
-	Plugins that atleast have to make it (one day)
- 
-* ** [ADC-Pi-Plus] (https://www.abelectronics.co.uk/products/17/Raspberry-Pi-B/56/ADC-Pi-Plus---Raspberry-Pi-Analogue-to-Digital-converter)
+* MCP3424 / ADC-Pi-Plus (https://www.abelectronics.co.uk/products/17/Raspberry-Pi-B/56/ADC-Pi-Plus---Raspberry-Pi-Analogue-to-Digital-converter)
 	8 Channel ADC digital converter.
 
-* ** [attopilot] (https://www.coolcomponents.co.uk/attopilot-voltage-and-current-sense-breakout-180a.html)
+* attopilot (https://www.coolcomponents.co.uk/attopilot-voltage-and-current-sense-breakout-180a.html)
 	Voltage/Current sensor 0-60v 180A 
-
-## Future plugins
-	Plugins that are nice to have, one day (maybe)
-
-* **[servo](plugings/servo)**
-	Controle I2C servo boards
-	* Bitwizard I2C 7 servo board (http://www.bitwizard.nl/shop/expansion-boards/servo)
-
-* **[gamepad]** controls the ROV with a gamepad/Xbox360 controller. 
 
 ## Install
 
-If you require the use of I2C, please make sure your PI is configured correctly for this.
+You will require the use of I2C, please make sure your PI is configured correctly for this.
 See (https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c) if you need help with this.
 
-ROV-PI requires a recent nodejs (built and tested with node > 0.10) (http://elinux.org/Node.js_on_RPi)
-as well as[npm](https://npmjs.org/) and [bower](http://bower.io/) for dependency management.
+Moki-ROV requires a recent nodejs (built and tested with node > 0.10) (http://elinux.org/Node.js_on_RPi)
+as well as[npm](https://npmjs.org/) for module dependency management.
 
 ```
 git clone https://github.com/Moki38/Moki-ROV.git
 cd ROV-PI
 npm install
-bower install
 ```
 
 ## Usage
@@ -80,11 +68,13 @@ export LD_LIBRARY_PATH=/usr/local/lib
 
 ### Controlling the ROV
 
-You can control the ROV using the following keys. 
+You can control the ROV using a Xpad controller, tested are (Xbox 360 and Xbox one). 
 
 Use `w, s, a, d` to move front, back and sideways. Use `i, j, k ,l` to go up/down or turn clockwise/counter clockwise. 
 
-Use the `1, 2, 3, 4` key to select a camera (mjpg-streamer has to be running).
+Use the `1, 2` key to select a camera (mjpg-streamer has to be running).
+
+Use the `[, ]` key to increase and decrease motor power.
 
 Use the `h` key to activate hover-mode.
 

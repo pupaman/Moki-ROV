@@ -12,22 +12,81 @@ try {
     process.exit(-1);
 }
 
-console.log("config.servo.S00.max: "+config.servo.S00.max);
+//console.log("config.servo.S00.max: "+config.servo.S00.max);
 
-Object.keys(config.movement.forward).forEach(function(key) {
-    console.log(key + config.movement.forward[key]);
-});
+//Object.keys(config.movement.forward).forEach(function(key) {
+//    console.log(key + config.movement.forward[key]);
+//});
 
-var makePwm = require("adafruit-pca9685" );
-var pwm = makePwm();
-var mpu9150 = require("mpu9150");
-var imu = new mpu9150();
-imu.initialize();
-var mcp3424 = require('mcp3424');
-var address = 0x6c;
-var gain = 0; //{0,1,2,3} represents {x1,x2,x4,x8}
-var resolution = 3; //{0,1,2,3} and represents {12,14,16,18} bits
-//var mcp = new mcp3424(address, gain, resolution, '/dev/i2c-1');
+// I2C
+var i2c_device = '/dev/i2c-1';
+var i2c = require('i2c');
+var PCA9685_ADDR=0x41;
+var PCA9685_INIT=false;
+var MPU9150_ADDR=0x68;
+var MPU9150_INIT=false;
+var MS5803_ADDR=0xa0;
+var MS5803_INIT=false;
+var MCP3424_ADDR1=0x6c;
+var MCP3424_ADDR1=0x6d;
+var MCP3424_INIT1=false;
+var MCP3424_INIT2=false;
+
+
+// Check I2C devices
+var wire = new i2c(PCA9685_ADDR, {device: i2c_device}); 
+function i2c_sensor_check(obj) {
+var arr = wire.scan(function(err, data) {
+  // result contains an array of addresses
+  });
+  for(var i=0; i<arr.length; i++) {
+      if (arr[i] == obj) {
+         return true;
+      }
+  }
+}
+
+PCA9685_INIT = i2c_sensor_check(PCA9685_ADDR);
+if (PCA9685_INIT) {
+  var makePwm = require("adafruit-pca9685" );
+  var pwm = makePwm({"address": PCA9685_ADDR, "device": i2c_device, "freq": 50, "debug": true});
+} else {
+  console.log("PCA9685 Not found, disabled!");
+}
+
+MPU9150_INIT = i2c_sensor_check(MPU9150_ADDR);
+if (MPU9150_INIT) {
+//  var mpu9150 = require("mpu9150");
+//  var imu = new mpu9150();
+//  imu.initialize();
+var PORT = 32000;
+var HOST = '127.0.0.1';
+
+var dgram = require('dgram');
+var imuserver = dgram.createSocket('udp4');
+
+} else {
+  console.log("MPU9150 Not found, disabled!");
+}
+
+MS5803_INIT = i2c_sensor_check(MS5803_ADDR);
+if (MS5803_INIT) {
+  var makeMS5803 = require("ms5803" );
+  var ms5803 = makeMS5803();
+} else {
+  console.log("MS5803 Not found, disabled!");
+}
+
+MCP3424_INIT = i2c_sensor_check(MCP3424_ADDR1);
+if (MCP3424_INIT) {
+  var mcp3424 = require('mcp3424');
+  var address = 0x6c;
+  var gain = 0; //{0,1,2,3} represents {x1,x2,x4,x8}
+  var resolution = 3; //{0,1,2,3} and represents {12,14,16,18} bits
+  var mcp = new mcp3424(MCP3424_ADDR1, gain, resolution, i2c_device);
+} else {
+  console.log("MCP3424 Not found, disabled!");
+}
 
 var servoMin = 150;
 var servoMax = 600;
@@ -78,6 +137,15 @@ var pwms = {
         }
   };
 
+var imudata = {
+        time: 0,
+        roll: 0,
+        pitch: 0,
+        yaw: 0,
+        status: 0
+  };
+
+
 var rovdata = {
 	heading: 0,
 	pitch: 0,
@@ -90,18 +158,6 @@ var rovdata = {
 	hover: false
   };
 
-var imudata = {
-	acc_x: 0,
-	acc_y: 0,
-	acc_z: 0,
-	rot_x: 0,
-	rot_y: 0,
-	rot_z: 0,
-	mag_x: 0,
-	mag_y: 0,
-	mag_z: 0
-  };
-
 var power = 0;
 var hoverset = 0;
 var hoveractive = false;
@@ -109,7 +165,7 @@ var lightsactive = false;
 var lightsonce = false;
 
 /* Server config */
-app.set("ipaddr", "10.10.10.10");
+app.set("ipaddr", "192.168.1.31");
 app.set("port", 3000);
 app.set("views", __dirname + "/views");
 app.use(express.static("public", __dirname + "/public"));
@@ -126,38 +182,9 @@ function sleep(milliseconds) {
   }
 }
 
-var processResult = function(stdout) {  
-    var lines = stdout.toString().split('\n');
-    var results = new Array();
-    lines.forEach(function(line) {
-        var parts = line.split(' = ');
-        results[parts[0]] = parts[1];
-        if (parts[0] == 'pressure') {
-           rovdata.mbar = parts[1]/10;
-        }
-        if (parts[0] == 'temp') {
-           rovdata.temp = parts[1]/100;
-        }
-        if (parts[0] == 'roll') {
-           rovdata.roll = Math.floor(parts[1]);
-        }
-        if (parts[0] == 'pitch') {
-           rovdata.pitch = Math.floor(parts[1]);
-        }
-        if (parts[0] == 'yaw') {
-           rovdata.heading = Math.floor(parts[1]);
-        }
-    });
-};
-
 var update_mpu9150 = function(rovdata){
   console.log('update mpu9150, begin');
 /*
-  var child = shell.exec('/root/rov-pi/plugins/RTIMULibDrive/Output/RTIMULibDrive', {async:true, silent:true});
-    child.stdout.on('data', function(data) {
-      processResult(data);
-  });
-*/
   imudata.acc_x = imu.getAccelerationX();
   imudata.acc_y = imu.getAccelerationY();
   imudata.acc_z = imu.getAccelerationZ();
@@ -169,6 +196,7 @@ var update_mpu9150 = function(rovdata){
   imudata.mag_z = imu.getHeadingZ();
 //  imudata = imu.getMotion9();
   console.log(imudata);
+*/
   console.log('update mpu9150, end');
   return rovdata;
 };
@@ -195,7 +223,6 @@ var update_ms5803 = function(rovdata){
   console.log('update ms5803, begin');
   var child = shell.exec('/root/rov-pi/plugins/ms5803/ms5803.sh', {async:true, silent:true});
     child.stdout.on('data', function(data) {
-      processResult(data);
   });
   console.log('update ms5803, end');
   return rovdata;
@@ -215,8 +242,7 @@ var servo = function(channel, position) {
    }
    console.log("servo", movement);
  
-//   pwm.setFreq(60, 1.0);
-   pwm.setPwm(channel, 0, movement);
+   //pwm.setPwm(channel, 0, movement);
 };
 
 /* Socket.IO events */
@@ -322,11 +348,11 @@ var lights = function() {
       if (!lightsonce) {
         if (rovdata.lights) {
           console.log("LIGHTS: ON");
-          pwm.setPwm(7, 0, 4095);
+          //pwm.setPwm(7, 0, 4095);
           socket.emit("command","Light ON");
         } else {
           console.log("LIGHTS: OFF");
-          pwm.setPwm(7, 0 , 0);
+          //pwm.setPwm(7, 0 , 0);
           socket.emit("command","Light Off");
         }
       lightsonce = true;
@@ -383,11 +409,55 @@ var motor_4 = function(position) {
     clearInterval(interval);
   });
 
+imuserver.on('listening', function () {
+    var address = imuserver.address();
+//    console.log('Listening for IMU data on: ' + address.address + ":" + address.port);
+});
+
+imuserver.on('message', function (message, remote) {
+    imustring = message.toString().split(' ');
+
+    for(var i=0; i<imustring.length;i++) imustring[i] = +imustring[i];
+
+    imudata.time   = imustring[0];
+    imudata.roll   = +imustring[1].toFixed(2);
+    imudata.pitch  = +imustring[2].toFixed(2);
+    imudata.yaw    = +imustring[3].toFixed(2);
+    if (new Date().getTime() - imudata.time < 15) {
+       imudata.status = 'OK';
+    } else {
+       imudata.status = 'NOK';
+    }
+    if (imudata.roll < 0) {
+            rovdata.roll = imudata.roll + 360;
+    } else {
+            rovdata.roll = imudata.roll;
+    }
+    if (imudata.pitch < 0) {
+        rovdata.pitch = imudata.pitch + 360;
+    } else {
+        rovdata.pitch = imudata.pitch;
+    }
+    if (imudata.yaw < 0) {
+        rovdata.yaw = imudata.yaw + 360;
+    } else {
+        rovdata.yaw = imudata.yaw;
+    }
+    rovdata.status = imudata.status;
+
+//    console.log(imudata);
+});
+
+
   var interval = setInterval(function () {
+    if (MCP3424_INIT) {update_mcp3424(rovdata)};
+    if (MPU9150_INIT) {update_mpu9150(rovdata)};
+    if (MS5803_INIT) {update_ms5803(rovdata)};
+
 //      rovdata = update_ms5803(rovdata);
-//      socket.emit("rovdata", rovdata);
 //      rovdata = update_mpu9150(rovdata);
 //      rovdata = update_mcp3424(rovdata);
+
       socket.emit("rovdata", rovdata);
       if (rovdata.hover) {
 	hover();
@@ -510,10 +580,8 @@ var motor_4 = function(position) {
 
 });
 
-//rovexec_mpu9150(rovdata);
-
 //Start the http server at port and IP defined before
 server.listen(app.get("port"), app.get("ipaddr"), function() {
-  console.log("Server up and running. Go to http://" + app.get("ipaddr") + ":" + app.get("port"));
+  console.log("ROV Server up and running. Go to http://" + app.get("ipaddr") + ":" + app.get("port"));
 });
 
