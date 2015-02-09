@@ -15,7 +15,8 @@ And tested on:
 
 * Adafruit 16-Channel 12-bit PWM/Servo Driver - I2C interface - PCA9685 (http://www.adafruit.com/product/815)
 	•Pin 1/2 Camara movement x/y
-	•Pin 3/4 Light Relay (http://www.kiwi-electronics.nl/tweekanaals-relais-module-5v)
+	•Pin 7/8 Light Relay (http://www.kiwi-electronics.nl/tweekanaals-relais-module-5v)
+	•Pin 12/13/14/15 ESC speed-controllers (brushless / brushed)
 
 * OpenROV Pressure sensor [MS5803-14BA] ** (http://store.openrov.com/products/openrov-imu-depth-module)
 	•Senses down up to 130m depth
