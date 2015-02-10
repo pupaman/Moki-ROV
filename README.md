@@ -51,6 +51,7 @@ git clone https://github.com/richards-tech/RTIMULib.git
 cd RTIMULib
 patch -p1 < ../RTIMULib.patch
 cd Linux/RTIMULibDrive
+make
 make install
 cd ../../..
 apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
