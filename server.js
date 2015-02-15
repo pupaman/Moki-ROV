@@ -72,7 +72,7 @@ var imuserver = dgram.createSocket('udp4');
 MS5803_INIT = i2c_sensor_check(MS5803_ADDR);
 if (MS5803_INIT) {
   var makeMS5803 = require("ms5803_rpi" );
-  var ms5803 = new makeMS5803({address: MS5803_ADDR, device: i2c_device' });
+  var ms5803 = new makeMS5803({address: MS5803_ADDR, device: i2c_device });
 } else {
   console.log("MS5803 Not found, disabled!");
 }
