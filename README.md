@@ -7,6 +7,7 @@ The browser screen will display a HUD, with all the sensor details you have on b
 If you encounter an issue; please mail details to <rov-pi@team-moki.nl>
 
 This software was build on a Raspberry PI (Model B+)
+
 And tested on:
 - Raspberry PI (Model B+)
 - Banana Pro
@@ -58,12 +59,12 @@ apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
 git clone https://github.com/jacksonliam/mjpg-streamer.git
 cd mjpg-streamer/mjpg-streamer-experimental
 make install
+cd ../..
 ```
 
 ## Usage
 
-1. Edit `server.js` => Change the IP (app.set("ipaddr", "192.168.1.30");), to the ip from your PI.
-2. Edit `index..html` => Change the IP (iframe), to the ip/port from your mjpg-stream.
+1. Edit `index.html` => Change the IP (iframe), to the ip/port for your mjpg-stream.
 2. Run `mjpg-stream` => ./mjpg_streamer -i "./input_uvc.so" -o "./output_http.so"
 3. Run `RTIMULibDrive` => RTIMULibDrive &
 3. Run `node server.js`
