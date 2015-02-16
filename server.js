@@ -1,3 +1,5 @@
+var version = "0.1.0";
+
 var express = require('express');
 var app = express();
 var server = require("http").Server(app);
@@ -17,6 +19,38 @@ try {
 //Object.keys(config.movement.forward).forEach(function(key) {
 //    console.log(key + config.movement.forward[key]);
 //});
+
+var imudata = {
+        time: 0,
+        roll: 0,
+        pitch: 0,
+        yaw: 0,
+        status: 0
+  };
+
+
+var rovdata = {
+	heading: 0,
+	pitch: 0,
+	roll: 0,
+	mbar: 0,
+	temp: 0,
+        volt: 0,
+        current: 0,
+	lights: false,
+	mpu9150: false,
+	ms5803: false,
+	mcp3424: false,
+	pca9685: false,
+	hover: false
+  };
+
+var power = 0;
+var hoverset = 0;
+var hoveractive = false;
+var lightsactive = false;
+var lightsonce = false;
+
 
 // I2C
 var i2c_device = '/dev/i2c-1';
@@ -48,43 +82,49 @@ var arr = wire.scan(function(err, data) {
 
 PCA9685_INIT = i2c_sensor_check(PCA9685_ADDR);
 if (PCA9685_INIT) {
+  rovdata.pca9685 = true;
   var makePwm = require("adafruit-pca9685" );
   var pwm = makePwm({"address": PCA9685_ADDR, "device": i2c_device, "freq": 50, "debug": true});
 } else {
+  rovdata.pca9685 = false;
   console.log("PCA9685 Not found, disabled!");
 }
 
 MPU9150_INIT = i2c_sensor_check(MPU9150_ADDR);
+var PORT = 32000;
+var HOST = '127.0.0.1';
+var dgram = require('dgram');
+var imuserver = dgram.createSocket('udp4');
 if (MPU9150_INIT) {
+  rovdata.mpu9150 = true;
 //  var mpu9150 = require("mpu9150");
 //  var imu = new mpu9150();
 //  imu.initialize();
-var PORT = 32000;
-var HOST = '127.0.0.1';
-
-var dgram = require('dgram');
-var imuserver = dgram.createSocket('udp4');
-
 } else {
+  rovdata.mpu9150 = false;
   console.log("MPU9150 Not found, disabled!");
 }
 
 MS5803_INIT = i2c_sensor_check(MS5803_ADDR);
 if (MS5803_INIT) {
+  rovdata.ms5803 = true;
   var makeMS5803 = require("ms5803_rpi" );
   var ms5803 = new makeMS5803({address: MS5803_ADDR, device: i2c_device });
 } else {
+  rovdata.ms5803 = false;
   console.log("MS5803 Not found, disabled!");
 }
 
 MCP3424_INIT = i2c_sensor_check(MCP3424_ADDR1);
 if (MCP3424_INIT) {
+  rovdata.mcp3424 = true;
   var mcp3424 = require('mcp3424');
   var address = 0x6c;
   var gain = 0; //{0,1,2,3} represents {x1,x2,x4,x8}
   var resolution = 3; //{0,1,2,3} and represents {12,14,16,18} bits
   var mcp = new mcp3424(MCP3424_ADDR1, gain, resolution, i2c_device);
 } else {
+  rovdata.mcp3424 = false;
   console.log("MCP3424 Not found, disabled!");
 }
 
@@ -137,35 +177,8 @@ var pwms = {
         }
   };
 
-var imudata = {
-        time: 0,
-        roll: 0,
-        pitch: 0,
-        yaw: 0,
-        status: 0
-  };
-
-
-var rovdata = {
-	heading: 0,
-	pitch: 0,
-	roll: 0,
-	mbar: 0,
-	temp: 0,
-        volt: 0,
-        current: 0,
-	lights: false,
-	hover: false
-  };
-
-var power = 0;
-var hoverset = 0;
-var hoveractive = false;
-var lightsactive = false;
-var lightsonce = false;
-
 /* Server config */
-app.set("ipaddr", "192.168.1.31");
+app.set("ipaddr", "0.0.0.0");
 app.set("port", 3000);
 app.set("views", __dirname + "/views");
 app.use(express.static("public", __dirname + "/public"));
@@ -207,13 +220,13 @@ var update_mcp3424 = function(rovdata) {
 // VFinal = VRaw/49.44; //45 Amp board
 //VFinal = VRaw/12.99; //90 Amp board
 //VFinal = VRaw/12.99; //180 Amp board  
-  rovdata.current = mcp.getMv(3);
+  rovdata.current = mcp.getMv(1);
 //IFinal = IRaw/14.9; //45 Amp board
 //IFinal = IRaw/7.4; //90 Amp board
 //IFinal = IRaw/3.7; //180 Amp board
 
 console.log(mcp.getMv(0)); //for channel 0
-console.log(mcp.getMv(3)); //for channel 3
+console.log(mcp.getMv(1)); //for channel 1
 
 return rovdata;
 };
@@ -221,9 +234,9 @@ return rovdata;
 
 var update_ms5803 = function(rovdata){
   console.log('update ms5803, begin');
-  var child = shell.exec('/root/rov-pi/plugins/ms5803/ms5803.sh', {async:true, silent:true});
-    child.stdout.on('data', function(data) {
-  });
+  ms5803.read = function(data){
+    console.log('update ms5803'+data);
+  };
   console.log('update ms5803, end');
   return rovdata;
 };
