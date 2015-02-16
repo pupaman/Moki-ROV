@@ -1,0 +1,97 @@
+#! /bin/bash
+
+### BEGIN INIT INFO
+# Provides:		rov
+# Required-Start:	$syslog
+# Required-Stop:	$syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		
+# Short-Description:	Moki ROV server
+### END INIT INFO
+
+set -e
+
+# /etc/init.d/rov: start and stop the Moki ROV server daemon
+
+umask 022
+
+if test -f /etc/default/rov; then
+#    . /etc/default/rov
+    . ./rov.default
+fi
+
+. /lib/lsb/init-functions
+
+# Are we running from init?
+run_by_init() {
+    ([ "$previous" ] && [ "$runlevel" ]) || [ "$runlevel" = S ]
+}
+
+rov_start() {
+   echo "Starting RTIMULibDrive for IMU support."
+   RTIMULibDrive & 
+   echo "Starting Camera support."
+   cd ./mjpg-streamer/mjpg-streamer-experimental
+   if [ $CAM1 == "ON" ] 
+   then
+     echo "Starting Cam1."
+     ./mjpg_streamer -i "./input_uvc.so -n -f 24 -r 800x600 -d /dev/video0" -o "./output_http.so  -n -w /usr/local/www -p 8080" &
+   fi
+   if [ $CAM2 == "ON" ] 
+   then
+     echo "Starting Cam2."
+     ./mjpg_streamer -i "./input_uvc.so -n -f 24 -r 800x600 -d /dev/video1" -o "./output_http.so  -n -w /usr/local/www -p 8080" &
+   fi
+   if [ $CAM3 == "ON" ] 
+   then
+     echo "Starting Cam3."
+     ./mjpg_streamer -i "./input_uvc.so -n -f 24 -r 800x600 -d /dev/video2" -o "./output_http.so  -n -w /usr/local/www -p 8080" &
+   fi
+   if [ $CAM4 == "ON" ] 
+   then
+     echo "Starting Cam4."
+     ./mjpg_streamer -i "./input_uvc.so -n -f 24 -r 800x600 -d /dev/video3" -o "./output_http.so  -n -w /usr/local/www -p 8080" &
+   fi
+   cd ../..
+   echo "Starting ROV server."
+   node server.js > server.log 2>&1 &
+}
+
+rov_stop() {
+   echo "Stopping ROV server."
+   killall -9 -q node;
+   echo "Stopping mjpg_streamer."
+   killall -9 -q mjpg_streamer;
+   echo "Stopping RTIMULibDrive."
+   killall -9 -q RTIMULibDrive;
+}
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+	log_daemon_msg "Starting Moki ROV server" "rov" || true
+    	echo;
+	rov_start;
+	;;
+  stop)
+	log_daemon_msg "Stopping Moki ROV server" "rov" || true
+    	echo;
+	rov_stop;
+	;;
+
+  restart)
+	log_daemon_msg "Stopping Moki ROV server" "rov" || true
+    	echo;
+	rov_stop;
+	log_daemon_msg "Starting Moki ROV server" "rov" || true
+    	echo;
+	rov_start;
+	;;
+
+  *)
+	log_action_msg "Usage: /etc/init.d/rov {start|stop|restart}" || true
+	exit 1
+esac
+
+exit 0

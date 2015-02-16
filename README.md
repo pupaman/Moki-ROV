@@ -40,7 +40,7 @@ And tested on:
 You will require the use of I2C, please make sure your PI is configured correctly for this.
 See (https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c) if you need help with this.
 
-Moki-ROV requires a recent nodejs (built and tested with node > 0.10) (http://elinux.org/Node.js_on_RPi)
+Moki-ROV requires a recent nodejs (built and tested with node V 0.10.33) (http://elinux.org/Node.js_on_RPi)
 as well as[npm](https://npmjs.org/) for module dependency management.
 
 ```
@@ -54,7 +54,7 @@ patch -p1 < ../RTIMULib.patch
 cd Linux/RTIMULibDrive
 make
 make install
-cd ../../..
+cd ../..
 apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
 git clone https://github.com/jacksonliam/mjpg-streamer.git
 cd mjpg-streamer/mjpg-streamer-experimental
@@ -64,11 +64,19 @@ cd ../..
 
 ## Usage
 
-1. Edit `index.html` => Change the IP (iframe), to the ip/port for your mjpg-stream.
-2. Run `mjpg-stream` => ./mjpg_streamer -i "./input_uvc.so" -o "./output_http.so"
-3. Run `RTIMULibDrive` => RTIMULibDrive &
-3. Run `node server.js`
-4. Point your browser to http://<ROV-PI-IP>:3000/
+1. Edit `public/index.html` => Change the IP (iframe), to the ip/port for your mjpg-stream.
+2. Edit `public/cam1.html` => Change the IP (iframe), to the ip/port for your mjpg-stream.
+3. Edit `public/cam2.html` => Change the IP (iframe), to the ip/port for your mjpg-stream.
+
+4. Run `mjpg-stream` => ./mjpg_streamer -i "./input_uvc.so" -o "./output_http.so"
+5. Run `RTIMULibDrive` => RTIMULibDrive &
+6. Run `node server.js`
+7. Point your browser to http://[ROV-IP]:3000/
+
+Or
+
+4. ./rov start
+5. Point your browser to http://[ROV-IP]:3000/
 
 ### Running mjpg-stream
 

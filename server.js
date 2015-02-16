@@ -231,11 +231,11 @@ return rovdata;
 
 
 var update_ms5803 = function(rovdata){
-  console.log('update ms5803, begin');
+//  console.log('update ms5803, begin');
   ms5803.read = function(data){
     console.log('update ms5803'+data);
   };
-  console.log('update ms5803, end');
+//  console.log('update ms5803, end');
   return rovdata;
 };
 

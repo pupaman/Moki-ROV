@@ -1,0 +1,9 @@
+# Configuration file for the Moki ROV.
+BASEDIR=/root/160215/Moki-ROV
+# Define which camera's are active.
+CAM1=ON
+CAM2=OFF
+CAM3=OFF
+CAM4=OFF
+# Do we use a IMU?
+IMU=ON
