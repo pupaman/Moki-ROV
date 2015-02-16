@@ -1,4 +1,4 @@
-var version = "0.1.0";
+var version = "0.1.1";
 
 var express = require('express');
 var app = express();
@@ -196,7 +196,6 @@ function sleep(milliseconds) {
 }
 
 var update_mpu9150 = function(rovdata){
-  console.log('update mpu9150, begin');
 /*
   imudata.acc_x = imu.getAccelerationX();
   imudata.acc_y = imu.getAccelerationY();
@@ -210,23 +209,22 @@ var update_mpu9150 = function(rovdata){
 //  imudata = imu.getMotion9();
   console.log(imudata);
 */
-  console.log('update mpu9150, end');
   return rovdata;
 };
 
 var update_mcp3424 = function(rovdata) {
 
-  rovdata.volt = mcp.getMv(0);
+  rovdata.volt = Math.floor(mcp.getMv(0)/4096/12.99*100)/100;
 // VFinal = VRaw/49.44; //45 Amp board
 //VFinal = VRaw/12.99; //90 Amp board
 //VFinal = VRaw/12.99; //180 Amp board  
-  rovdata.current = mcp.getMv(1);
+  rovdata.current = Math.floor(mcp.getMv(1)/4096/3.7*100)/100;
 //IFinal = IRaw/14.9; //45 Amp board
 //IFinal = IRaw/7.4; //90 Amp board
 //IFinal = IRaw/3.7; //180 Amp board
 
-console.log(mcp.getMv(0)); //for channel 0
-console.log(mcp.getMv(1)); //for channel 1
+//console.log(mcp.getMv(0)); //for channel 0
+//console.log(mcp.getMv(1)); //for channel 1
 
 return rovdata;
 };

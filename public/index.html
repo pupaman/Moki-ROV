@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Raspberry PI ROV (V0.0.1)</title>
+    <title>Raspberry PI ROV (V0.1.0)</title>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -281,6 +281,8 @@ var depth = 0;
 var heading = 0;
 var pitch = 0;
 var roll = 0;
+var volt = 0;
+var current = 0;
 var lights = false;
 var hover = false;
 var camera = "Front";
@@ -409,11 +411,17 @@ function update(rovdata) {
   }
   depth = Math.round(rovdata.mbar - mbar);
   temp = rovdata.temp;
+  volt = rovdata.volt;
+  current = rovdata.current;
   heading = rovdata.heading;
   pitch = rovdata.pitch;
   roll = rovdata.roll;
   hover = rovdata.hover;
   lights = rovdata.lights;
+  mpu9150 = rovdata.mpu9150;
+  pca9685 = rovdata.pca9685;
+  mcp3424 = rovdata.mcp3424;
+  ms5803 = rovdata.ms5803;
 }
 
 function display(rovdata) {
@@ -433,22 +441,41 @@ function display(rovdata) {
   rov_context.fillText("Command : ", 350, rov_canvas.height-20);
   rov_context.fillText(command, 470, rov_canvas.height-20);
 
-  rov_context.fillText( "Main V: xx.x", 290, 20);
-  rov_context.fillText( "Main A:xxx.x", 290, 40);
+  rov_context.fillText( "Main V", 290, 20);
+  rov_context.fillText( "Main A", 290, 40);
+  if (mcp3424) {
+    rov_context.fillText( ": "+volt, 370, 20);
+    rov_context.fillText( ": "+current, 370, 40);
+  } else {
+    rov_context.fillText( ": N/A", 370, 20);
+    rov_context.fillText( ": N/A", 370, 40);
+  }
 
   rov_context.fillText( "Heading", 470, 20);
   rov_context.fillText( "Roll", 470, 40);
   rov_context.fillText( "Pitch", 470, 60);
-  rov_context.fillText( ": "+checkHeading(heading), 550, 20);
-  rov_context.fillText( ": "+roll, 550, 40);
-  rov_context.fillText( ": "+pitch, 550, 60);
+  if (mpu9150) {
+    rov_context.fillText( ": "+checkHeading(heading), 550, 20);
+    rov_context.fillText( ": "+roll, 550, 40);
+    rov_context.fillText( ": "+pitch, 550, 60);
+  } else {
+    rov_context.fillText( ": N/A", 550, 20);
+    rov_context.fillText( ": N/A", 550, 40);
+    rov_context.fillText( ": N/A", 550, 60);
+  } 
 
   rov_context.fillText( "Mbar", 650, 20);
   rov_context.fillText( "Depth", 650, 40);
   rov_context.fillText( "Temp", 650, 60);
-  rov_context.fillText( ": "+mbar, 720, 20);
-  rov_context.fillText( ": "+depth+" cm", 720, 40);
-  rov_context.fillText( ": "+temp+" C", 720, 60);
+  if (ms5803) {
+    rov_context.fillText( ": "+mbar, 720, 20);
+    rov_context.fillText( ": "+depth+" cm", 720, 40);
+    rov_context.fillText( ": "+temp+" C", 720, 60);
+  } else {
+    rov_context.fillText( ": N/A", 720, 20);
+    rov_context.fillText( ": N/A", 720, 40);
+    rov_context.fillText( ": N/A", 720, 60);
+  }
  
 // HUD
   rov_context.beginPath();
