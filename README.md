@@ -54,7 +54,7 @@ patch -p1 < ../RTIMULib.patch
 cd Linux/RTIMULibDrive
 make
 make install
-cd ../..
+cd ../../..
 apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
 git clone https://github.com/jacksonliam/mjpg-streamer.git
 cd mjpg-streamer/mjpg-streamer-experimental
