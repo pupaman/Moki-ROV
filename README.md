@@ -55,7 +55,7 @@ cd Linux/RTIMULibDrive
 make
 make install
 cd ../../..
-apt-get install subversion libjpeg8-dev imagemagick libav-tools cmake
+apt-get install -y subversion libjpeg8-dev imagemagick libav-tools cmake
 git clone https://github.com/jacksonliam/mjpg-streamer.git
 cd mjpg-streamer/mjpg-streamer-experimental
 make install
