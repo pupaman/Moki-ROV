@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Raspberry PI ROV (V0.1.1)</title>
+    <title>Raspberry PI ROV (V0.1.2)</title>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -317,14 +317,6 @@ function checkTime(i) {
   return i;
 }
 
-function checkHeading(i) {
-  if (i<0) {i += 360};
-  if (i>360) {i -= 360};
-  if (i<100) {i = "0" + i};  // add zero in front of numbers < 10
-  if (i<10) {i = "0" + i};  // add zero in front of numbers < 100
-  return i;
-}
-
 function gamepad() {
 
   var value;
@@ -480,8 +472,11 @@ function display(rovdata) {
 // HUD
   rov_context.beginPath();
   rov_context.fillStyle = "#aa0000";
-  rov_context.arc((rov_canvas.width/2)+pitch, (rov_canvas.height/2)+pitch, 50, (roll/360)*Math.PI, Math.PI+((roll/360)*Math.PI), false);
-//  rov_context.fill();
+  if (pitch > 180) {
+     rov_context.arc((rov_canvas.width/2), (rov_canvas.height/2)+pitch-360, 50, (roll/180)*Math.PI, Math.PI+((roll/180)*Math.PI), false);
+  } else {
+     rov_context.arc((rov_canvas.width/2), (rov_canvas.height/2)+pitch, 50, (roll/180)*Math.PI, Math.PI+((roll/180)*Math.PI), false);
+  }
   rov_context.lineWidth = 3;
   rov_context.strokeStyle = '#aa0000';
   rov_context.stroke();
@@ -535,11 +530,11 @@ function display(rovdata) {
 //  rov_context.fillText( heading, (rov_canvas.width/2) - 20, 130);
 
   for (i = -10; i <= 10; i++) {
-      if ( (heading+i) % 5) {
+      if ( Math.floor(heading+i) % 5) {
           rov_context.moveTo((rov_canvas.width/2)+(i*35),65);
           rov_context.lineTo((rov_canvas.width/2)+(i*35),75);
       } else {
-          rov_context.fillText(checkHeading(heading+i), (rov_canvas.width/2)+(i*35)-18, 100);
+          rov_context.fillText(Math.floor(heading+i), (rov_canvas.width/2)+(i*35)-18, 100);
           rov_context.moveTo((rov_canvas.width/2)+(i*35), 65);
           rov_context.lineTo((rov_canvas.width/2)+(i*35), 85);
       }
