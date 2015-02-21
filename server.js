@@ -55,6 +55,7 @@ var lightsonce = false;
 // I2C
 var i2c_device = '/dev/i2c-1';
 var i2c = require('i2c');
+var INIT_ESC=false;
 var PCA9685_ADDR=0x40;
 var PCA9685_INIT=false;
 var MPU9150_ADDR=0x69;
@@ -626,22 +627,24 @@ imuserver.on('message', function (message, remote) {
 //
 // Prime the ESC, by going FULL forward and FULL back
 //
-console.log("Starting ESC\'s");
-pwm.setPwm(6, 0, 0);
-sleep(3000);
-pwm.setPwm(6, 0 , 4095);
-sleep(1000);
+if (INIT_ESC) {
+  console.log("Starting ESC\'s");
+  pwm.setPwm(6, 0, 0);
+  sleep(1000);
+  pwm.setPwm(6, 0 , 4095);
+  sleep(1000);
 
-servo(15,"init");
-servo(14,"init");
-servo(13,"init");
-servo(12,"init");
+  servo(15,"init");
+  servo(14,"init");
+  servo(13,"init");
+  servo(12,"init");
 
   console.log("motor", "stopall");
   servo(15,"stop");
   servo(14,"stop");
   servo(13,"stop");
   servo(12,"stop");
+}
 
 imuserver.bind(PORT, HOST);
 
