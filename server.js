@@ -207,7 +207,7 @@ var update_mpu9150 = function(rovdata){
   imudata.mag_y = imu.getHeadingY();
   imudata.mag_z = imu.getHeadingZ();
 //  imudata = imu.getMotion9();
-  console.log(imudata);
+//  console.log(imudata);
 */
   return rovdata;
 };
@@ -480,9 +480,9 @@ imuserver.on('message', function (message, remote) {
         rovdata.pitch = imudata.pitch;
     }
     if (imudata.yaw < 0) {
-        rovdata.yaw = imudata.yaw + 360;
+        rovdata.heading = imudata.yaw + 360;
     } else {
-        rovdata.yaw = imudata.yaw;
+        rovdata.heading = imudata.yaw;
     }
     rovdata.status = imudata.status;
 
@@ -491,6 +491,8 @@ imuserver.on('message', function (message, remote) {
 
 
   var interval = setInterval(function () {
+
+//   console.log("interval");
     if (MCP3424_INIT) {update_mcp3424(rovdata)};
     if (MPU9150_INIT) {update_mpu9150(rovdata)};
     if (MS5803_INIT) {update_ms5803(rovdata)};
@@ -503,7 +505,7 @@ imuserver.on('message', function (message, remote) {
       if (rovdata.hover) {
 	hover();
       };
-	lights();
+     lights();
   }, 1000);
 
   socket.on('gamepad', function(gamepad) {
@@ -640,6 +642,8 @@ servo(12,"init");
   servo(14,"stop");
   servo(13,"stop");
   servo(12,"stop");
+
+imuserver.bind(PORT, HOST);
 
 //Start the http server at port and IP defined before
 server.listen(app.get("port"), app.get("ipaddr"), function() {
