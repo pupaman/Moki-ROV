@@ -55,9 +55,9 @@ var lightsonce = false;
 // I2C
 var i2c_device = '/dev/i2c-1';
 var i2c = require('i2c');
-var PCA9685_ADDR=0x41;
+var PCA9685_ADDR=0x40;
 var PCA9685_INIT=false;
-var MPU9150_ADDR=0x68;
+var MPU9150_ADDR=0x69;
 var MPU9150_INIT=false;
 var MS5803_ADDR=0x76;
 var MS5803_INIT=false;
@@ -130,32 +130,32 @@ if (MCP3424_INIT) {
 
 var servoMin = 150;
 var servoMax = 600;
-var servoStop = 350;
+var servoStop = 375;
 
 var pwms = {
 	'pwm0' : {
 		'type' : 'esc',
                 'min'  : 150,
                 'max'  : 550,
-                'neutral': 350
+                'neutral': 375
         },
 	'pwm1' : {
 		'type' : 'esc',
                 'min'  : 150,
                 'max'  : 550,
-                'neutral': 350,
+                'neutral': 375,
         },
 	'pwm2' : {
 		'type' : 'esc',
                 'min'  : 150,
                 'max'  : 550,
-                'neutral': 350,
+                'neutral': 375,
         },
 	'pwm3' : {
 		'type' : 'esc',
                 'min'  : 150,
                 'max'  : 550,
-                'neutral': 350,
+                'neutral': 375,
         },
 	'pwm8' : {
 		'type' : 'servo',
@@ -239,21 +239,29 @@ var update_ms5803 = function(rovdata){
   return rovdata;
 };
 
-
 var servo = function(channel, position) {
    
+   if (position == "init") {
+     pwm.setPwm(channel, 0, servoStop+(servoMax-servoStop));
+     sleep(500);
+     pwm.setPwm(channel, 0, servoStop-(servoStop-servoMin));
+     sleep(500);
+     pwm.setPwm(channel, 0, servoStop);
+   }
    if (position == "reverse") {
      movement = servoStop+((servoMax-servoStop)/100*power);
+     pwm.setPwm(channel, 0, movement);
    }
    if (position == "forward") {
      movement = servoStop-((servoStop-servoMin)/100*power);
+     pwm.setPwm(channel, 0, movement);
    }
    if (position == "stop") {
      movement = servoStop;
+     pwm.setPwm(channel, 0, movement);
    }
-   console.log("servo", movement);
+//   console.log("servo", movement);
  
-   //pwm.setPwm(channel, 0, movement);
 };
 
 /* Socket.IO events */
@@ -288,6 +296,11 @@ var gamepadctrl = function(gamepad) {
       }
       lightsonce = false;
       lights();
+    }
+    
+//Window (8) Button
+    if ((res[1] == 8) && (res[3] == 1)) {
+      motor_reset();
     }
     
 
@@ -346,7 +359,7 @@ var gamepadctrl = function(gamepad) {
           socket.emit("motor","stopall");
 
           motor_stop();
-          break; 
+         break; 
      };
 
 
@@ -355,15 +368,32 @@ var gamepadctrl = function(gamepad) {
 
 }
 
+//
+// Prime the ESC, by going FULL forward and FULL back
+//
+var motor_reset = function() {
+
+console.log("Starting ESC\'s");
+pwm.setPwm(6, 0, 4095);
+sleep(3000);
+pwm.setPwm(6, 0 , 0);
+sleep(1000);
+
+servo(15,"init");
+servo(14,"init");
+servo(13,"init");
+servo(12,"init");
+}
+
 var lights = function() {
       if (!lightsonce) {
         if (rovdata.lights) {
           console.log("LIGHTS: ON");
-          //pwm.setPwm(7, 0, 4095);
+          pwm.setPwm(7, 0, 4095);
           socket.emit("command","Light ON");
         } else {
           console.log("LIGHTS: OFF");
-          //pwm.setPwm(7, 0 , 0);
+          pwm.setPwm(7, 0 , 0);
           socket.emit("command","Light Off");
         }
       lightsonce = true;
@@ -590,6 +620,26 @@ imuserver.on('message', function (message, remote) {
   });
 
 });
+
+//
+// Prime the ESC, by going FULL forward and FULL back
+//
+console.log("Starting ESC\'s");
+pwm.setPwm(6, 0, 0);
+sleep(3000);
+pwm.setPwm(6, 0 , 4095);
+sleep(1000);
+
+servo(15,"init");
+servo(14,"init");
+servo(13,"init");
+servo(12,"init");
+
+  console.log("motor", "stopall");
+  servo(15,"stop");
+  servo(14,"stop");
+  servo(13,"stop");
+  servo(12,"stop");
 
 //Start the http server at port and IP defined before
 server.listen(app.get("port"), app.get("ipaddr"), function() {
