@@ -55,7 +55,13 @@ var lightsonce = false;
 // I2C
 var i2c_device = '/dev/i2c-1';
 var i2c = require('i2c');
+
+// Set to "true" if ESC's need to be primed. (full forward/ full backwards)
 var INIT_ESC=false;
+// Set to "true" if you have ESC's with a brake function, we will by-pass it (real ROV's don;t brake) ;)
+var BRAKE_ESC=true;
+
+// I2C Sensor settings, please adjust to your setup.
 var PCA9685_ADDR=0x40;
 var PCA9685_INIT=false;
 var MPU9150_ADDR=0x69;
@@ -196,6 +202,7 @@ function sleep(milliseconds) {
   }
 }
 
+// As we are currently using RTIMUlib... we skip this.
 var update_mpu9150 = function(rovdata){
 /*
   imudata.acc_x = imu.getAccelerationX();
@@ -252,6 +259,10 @@ var servo = function(channel, position) {
    if (position == "reverse") {
      movement = servoStop+((servoMax-servoStop)/100*power);
      pwm.setPwm(channel, 0, movement);
+     if (BRAKE_ESC) {
+       pwm.setPwm(channel, 0, "stop");
+       pwm.setPwm(channel, 0, movement);
+     } 
    }
    if (position == "forward") {
      movement = servoStop-((servoStop-servoMin)/100*power);
@@ -462,8 +473,8 @@ imuserver.on('message', function (message, remote) {
     for(var i=0; i<imustring.length;i++) imustring[i] = +imustring[i];
 
     imudata.time   = imustring[0];
-    imudata.roll   = +imustring[1].toFixed(2);
-    imudata.pitch  = +imustring[2].toFixed(2);
+    imudata.pitch  = +imustring[1].toFixed(2);
+    imudata.roll   = +imustring[2].toFixed(2);
     imudata.yaw    = +imustring[3].toFixed(2);
     if (new Date().getTime() - imudata.time < 15) {
        imudata.status = 'OK';
