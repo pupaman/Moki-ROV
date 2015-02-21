@@ -648,6 +648,8 @@ if (INIT_ESC) {
 
 imuserver.bind(PORT, HOST);
 
+console.log("Special thanks to the testers of this software: olegodo and perfo !!!");
+
 //Start the http server at port and IP defined before
 server.listen(app.get("port"), app.get("ipaddr"), function() {
   console.log("ROV Server up and running. Go to http://" + app.get("ipaddr") + ":" + app.get("port"));
