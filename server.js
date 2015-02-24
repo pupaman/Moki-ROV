@@ -1,4 +1,4 @@
-var version = "0.1.1";
+var version = "0.2.0";
 
 var express = require('express');
 var app = express();
@@ -10,15 +10,11 @@ var shell = require("shelljs");
 try {
     var config = require('./config');
 } catch (err) {
-    console.log("Missing or corrupted config file. Have a look at config.js.example if you need an example."+err);
+    console.log("Missing or corrupted config file.");
+    console.log("Have a look at config.js.example if you need an example.");
+    console.log("Error: "+err);
     process.exit(-1);
 }
-
-//console.log("config.servo.S00.max: "+config.servo.S00.max);
-
-//Object.keys(config.movement.forward).forEach(function(key) {
-//    console.log(key + config.movement.forward[key]);
-//});
 
 var imudata = {
         time: 0,
@@ -27,7 +23,6 @@ var imudata = {
         yaw: 0,
         status: 0
   };
-
 
 var rovdata = {
 	heading: 0,
@@ -38,6 +33,7 @@ var rovdata = {
         volt: 0,
         current: 0,
 	lights: false,
+	motor: false,
 	mpu9150: false,
 	ms5803: false,
 	mcp3424: false,
@@ -50,32 +46,14 @@ var hoverset = 0;
 var hoveractive = false;
 var lightsactive = false;
 var lightsonce = false;
-
+var motoractive = false;
+var motoronce = false;
 
 // I2C
-var i2c_device = '/dev/i2c-1';
 var i2c = require('i2c');
 
-// Set to "true" if ESC's need to be primed. (full forward/ full backwards)
-var INIT_ESC=false;
-// Set to "true" if you have ESC's with a brake function, we will by-pass it (real ROV's don;t brake) ;)
-var BRAKE_ESC=true;
-
-// I2C Sensor settings, please adjust to your setup.
-var PCA9685_ADDR=0x40;
-var PCA9685_INIT=false;
-var MPU9150_ADDR=0x69;
-var MPU9150_INIT=false;
-var MS5803_ADDR=0x76;
-var MS5803_INIT=false;
-var MCP3424_ADDR1=0x6c;
-var MCP3424_ADDR1=0x6d;
-var MCP3424_INIT1=false;
-var MCP3424_INIT2=false;
-
-
 // Check I2C devices
-var wire = new i2c(PCA9685_ADDR, {device: i2c_device}); 
+var wire = new i2c(config.sensor.PCA9685.addr, {device: config.i2c.device}); 
 function i2c_sensor_check(obj) {
 var arr = wire.scan(function(err, data) {
   // result contains an array of addresses
@@ -87,22 +65,22 @@ var arr = wire.scan(function(err, data) {
   }
 }
 
-PCA9685_INIT = i2c_sensor_check(PCA9685_ADDR);
-if (PCA9685_INIT) {
+config.sensor.PCA9685.scan = i2c_sensor_check(config.sensor.PCA9685.addr);
+if (config.sensor.PCA9685.scan) {
   rovdata.pca9685 = true;
   var makePwm = require("adafruit-pca9685" );
-  var pwm = makePwm({"address": PCA9685_ADDR, "device": i2c_device, "freq": 50, "debug": true});
+  var pwm = makePwm({"address": config.sensor.PCA9685.addr, "device": config.i2c.device, "freq": 50, "debug": false});
 } else {
   rovdata.pca9685 = false;
   console.log("PCA9685 Not found, disabled!");
 }
 
-MPU9150_INIT = i2c_sensor_check(MPU9150_ADDR);
+config.sensor.MPU9150.scan = i2c_sensor_check(config.sensor.MPU9150.addr);
 var PORT = 32000;
 var HOST = '127.0.0.1';
 var dgram = require('dgram');
 var imuserver = dgram.createSocket('udp4');
-if (MPU9150_INIT) {
+if (config.sensor.MPU9150.scan) {
   rovdata.mpu9150 = true;
 //  var mpu9150 = require("mpu9150");
 //  var imu = new mpu9150();
@@ -112,81 +90,31 @@ if (MPU9150_INIT) {
   console.log("MPU9150 Not found, disabled!");
 }
 
-MS5803_INIT = i2c_sensor_check(MS5803_ADDR);
-if (MS5803_INIT) {
+config.sensor.MS5803.scan = i2c_sensor_check(config.sensor.MS5803.addr);
+if (config.sensor.MS5803.scan) {
   rovdata.ms5803 = true;
   var makeMS5803 = require("ms5803_rpi" );
-  var ms5803 = new makeMS5803({address: MS5803_ADDR, device: i2c_device });
+  var ms5803 = new makeMS5803({address: config.sensor.MS5803.addr, device: config.i2c.device });
 } else {
   rovdata.ms5803 = false;
   console.log("MS5803 Not found, disabled!");
 }
 
-MCP3424_INIT = i2c_sensor_check(MCP3424_ADDR1);
-if (MCP3424_INIT) {
+config.sensor.MCP3424.scan1 = i2c_sensor_check(config.sensor.MCP3424.addr1);
+if (config.sensor.MCP3424.scan1) {
   rovdata.mcp3424 = true;
   var mcp3424 = require('mcp3424');
-  var address = 0x6c;
   var gain = 0; //{0,1,2,3} represents {x1,x2,x4,x8}
   var resolution = 3; //{0,1,2,3} and represents {12,14,16,18} bits
-  var mcp = new mcp3424(MCP3424_ADDR1, gain, resolution, i2c_device);
+  var mcp = new mcp3424(config.sensor.MCP3424.addr1, gain, resolution, config.i2c.device);
 } else {
   rovdata.mcp3424 = false;
   console.log("MCP3424 Not found, disabled!");
 }
 
-var servoMin = 150;
-var servoMax = 600;
-var servoStop = 375;
-
-var pwms = {
-	'pwm0' : {
-		'type' : 'esc',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 375
-        },
-	'pwm1' : {
-		'type' : 'esc',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 375,
-        },
-	'pwm2' : {
-		'type' : 'esc',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 375,
-        },
-	'pwm3' : {
-		'type' : 'esc',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 375,
-        },
-	'pwm8' : {
-		'type' : 'servo',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 310,
-        },
-	'pwm9' : {
-		'type' : 'servo',
-                'min'  : 150,
-                'max'  : 550,
-                'neutral': 310,
-        },
-	'pwm15' : {
-		'type' : 'relay',
-                'min'  : 0,
-                'max'  : 4095,
-                'neutral': 0
-        }
-  };
-
 /* Server config */
-app.set("ipaddr", "0.0.0.0");
-app.set("port", 3000);
+app.set("ipaddr", config.network.ip_address);
+app.set("port", config.network.port);
 app.set("views", __dirname + "/views");
 app.use(express.static("public", __dirname + "/public"));
 app.get("/", function(request, response) {
@@ -248,7 +176,42 @@ var update_ms5803 = function(rovdata){
 };
 
 var servo = function(channel, position) {
-   
+
+// Lets set some default values
+   var servoStop = 350;
+   var servoMin = 200;
+   var servoMax = 500;
+   var BRAKE_ESC = false;
+   var movement = 0;
+ 
+   if (config.esc.engine_1.channel == channel) { 
+	servoStop =  config.esc.engine_1.neutral;
+	servoMin  =  config.esc.engine_1.min;
+	servoMax  =  config.esc.engine_1.max;
+	BRAKE_ESC =  config.esc.engine_1.brake;
+	}
+
+   if (config.esc.engine_2.channel == channel) { 
+	servoStop =  config.esc.engine_2.neutral;
+	servoMin  =  config.esc.engine_2.min;
+	servoMax  =  config.esc.engine_2.max;
+	BRAKE_ESC =  config.esc.engine_2.brake;
+	}
+
+   if (config.esc.engine_3.channel == channel) { 
+	servoStop =  config.esc.engine_3.neutral;
+	servoMin  =  config.esc.engine_3.min;
+	servoMax  =  config.esc.engine_3.max;
+	BRAKE_ESC =  config.esc.engine_3.brake;
+	}
+
+   if (config.esc.engine_4.channel == channel) { 
+	servoStop =  config.esc.engine_4.neutral;
+	servoMin  =  config.esc.engine_4.min;
+	servoMax  =  config.esc.engine_4.max;
+	BRAKE_ESC =  config.esc.engine_4.brake;
+	}
+
    if (position == "init") {
      pwm.setPwm(channel, 0, servoStop+(servoMax-servoStop));
      sleep(500);
@@ -256,23 +219,34 @@ var servo = function(channel, position) {
      sleep(500);
      pwm.setPwm(channel, 0, servoStop);
    }
+
    if (position == "reverse") {
      movement = servoStop+((servoMax-servoStop)/100*power);
      pwm.setPwm(channel, 0, movement);
      if (BRAKE_ESC) {
-       pwm.setPwm(channel, 0, "stop");
+       console.log("servo BREAK");
+       pwm.setPwm(channel, 0, servoStop);
+       sleep(3);
        pwm.setPwm(channel, 0, movement);
      } 
    }
+
    if (position == "forward") {
      movement = servoStop-((servoStop-servoMin)/100*power);
      pwm.setPwm(channel, 0, movement);
+     if (BRAKE_ESC) {
+       console.log("servo BREAK");
+       pwm.setPwm(channel, 0, servoStop);
+       sleep(250);
+       pwm.setPwm(channel, 0, movement);
+     } 
    }
+
    if (position == "stop") {
      movement = servoStop;
      pwm.setPwm(channel, 0, movement);
    }
-//   console.log("servo", movement);
+   console.log("servo: "+channel+" move: "+movement);
  
 };
 
@@ -282,9 +256,9 @@ io.on('connection', function(socket){
 
 var gamepadctrl = function(gamepad) {
   var event;
-  console.log ('Gamepad %s',gamepad);
+//  console.log ('Gamepad %s',gamepad);
   var res = gamepad.split(" ");
-  console.log ('Gamepad res:'+res);
+//  console.log ('Gamepad res:'+res);
   if (res[0] == "button") {
 // X Button
     if ((res[1] == 2) && (res[3] == 1)) {
@@ -312,7 +286,15 @@ var gamepadctrl = function(gamepad) {
     
 //Window (8) Button
     if ((res[1] == 8) && (res[3] == 1)) {
-      motor_reset();
+      if (motoractive == false) {
+        rovdata.motor = true;
+        motoractive = true;
+      } else {
+        rovdata.motor = false;
+        motoractive = false;
+      }
+      motoronce = false;
+      motor();
     }
     
 
@@ -380,23 +362,6 @@ var gamepadctrl = function(gamepad) {
 
 }
 
-//
-// Prime the ESC, by going FULL forward and FULL back
-//
-var motor_reset = function() {
-
-console.log("Starting ESC\'s");
-pwm.setPwm(6, 0, 4095);
-sleep(3000);
-pwm.setPwm(6, 0 , 0);
-sleep(1000);
-
-servo(15,"init");
-servo(14,"init");
-servo(13,"init");
-servo(12,"init");
-}
-
 var lights = function() {
       if (!lightsonce) {
         if (rovdata.lights) {
@@ -409,6 +374,21 @@ var lights = function() {
           socket.emit("command","Light Off");
         }
       lightsonce = true;
+      }
+}
+
+var motor = function() {
+      if (!motoronce) {
+        if (rovdata.motor) {
+          console.log("MOTOR: ON");
+          pwm.setPwm(6, 0, 4095);
+          socket.emit("command","Motor ON");
+        } else {
+          console.log("Motor: OFF");
+          pwm.setPwm(6, 0 , 0);
+          socket.emit("command","Motor Off");
+        }
+      motoronce = true;
       }
 }
 
@@ -504,14 +484,9 @@ imuserver.on('message', function (message, remote) {
 
   var interval = setInterval(function () {
 
-//   console.log("interval");
-    if (MCP3424_INIT) {update_mcp3424(rovdata)};
-    if (MPU9150_INIT) {update_mpu9150(rovdata)};
-    if (MS5803_INIT) {update_ms5803(rovdata)};
-
-//      rovdata = update_ms5803(rovdata);
-//      rovdata = update_mpu9150(rovdata);
-//      rovdata = update_mcp3424(rovdata);
+    if (config.sensor.MCP3424.scan1) {update_mcp3424(rovdata)};
+    if (config.sensor.MPU9150.scan) {update_mpu9150(rovdata)};
+    if (config.sensor.MS5803.scan) {update_ms5803(rovdata)};
 
       socket.emit("rovdata", rovdata);
       if (rovdata.hover) {
@@ -638,7 +613,7 @@ imuserver.on('message', function (message, remote) {
 //
 // Prime the ESC, by going FULL forward and FULL back
 //
-if (INIT_ESC) {
+if (config.esc.on_off.channel != -1) {
   console.log("Starting ESC\'s");
   pwm.setPwm(6, 0, 0);
   sleep(1000);
