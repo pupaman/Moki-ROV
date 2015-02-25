@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015, Eric van Dijken <eric@team-moki.nl>
+//
+
 var version = "0.2.0";
 
 var express = require('express');
@@ -6,7 +10,9 @@ var server = require("http").Server(app);
 var io = require("socket.io")(server);
 var shell = require("shelljs");
 
+//
 // Fetch configuration
+//
 try {
     var config = require('./config');
 } catch (err) {
@@ -16,6 +22,9 @@ try {
     process.exit(-1);
 }
 
+//
+// imudata, is used for storing data from RTIMUlibDrive
+//
 var imudata = {
         time: 0,
         roll: 0,
@@ -24,6 +33,9 @@ var imudata = {
         status: 0
   };
 
+//
+// rovdata, is used for sending data to the webbrowser
+//
 var rovdata = {
 	heading: 0,
 	pitch: 0,
@@ -41,6 +53,9 @@ var rovdata = {
 	hover: false
   };
 
+//
+// Some local status variables
+//
 var power = 0;
 var hoverset = 0;
 var hoveractive = false;
@@ -168,9 +183,11 @@ return rovdata;
 
 var update_ms5803 = function(rovdata){
 //  console.log('update ms5803, begin');
-  ms5803.read = function(data){
-    console.log('update ms5803'+data);
-  };
+   ms5803.read(function (err, data) {
+//    console.log('update ms5803'+data);
+    rovdata.temp = data.temperature;
+    rovdata.mbar = data.pressure;
+  });
 //  console.log('update ms5803, end');
   return rovdata;
 };
