@@ -99,6 +99,8 @@ Use the `1, 2` key to select a camera (mjpg-streamer has to be running).
 
 Use the `[, ]` key to increase and decrease motor power.
 
+Use the `g` key to activate the lights.
+
 Use the `h` key to activate hover-mode.
 
 ### Record a mission

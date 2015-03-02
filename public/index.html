@@ -32,7 +32,7 @@
           case 87:
             if(wIsDown) return;
             wIsDown = true;
-            socket.emit('keydown', 'up');
+            socket.emit('keydown', 'forward');
             break;
           case 65:
             if(aIsDown) return;
@@ -42,7 +42,7 @@
           case 83:
             if(sIsDown) return;
             sIsDown = true;
-            socket.emit('keydown', 'dive');
+            socket.emit('keydown', 'reverse');
             break;
           case 68:
             if(dIsDown) return;
@@ -62,7 +62,7 @@
           case 73:
             if(iIsDown) return;
             iIsDown = true;
-            socket.emit('keydown', 'forward');
+            socket.emit('keydown', 'up');
             break;
           case 74:
             if(jIsDown) return;
@@ -72,7 +72,7 @@
           case 75:
             if(kIsDown) return;
             kIsDown = true;
-            socket.emit('keydown', 'reverse');
+            socket.emit('keydown', 'dive');
             break;
           case 76:
             if(lIsDown) return;
@@ -83,14 +83,14 @@
             if(cam1IsDown) return;
             cam1IsDown = true;
 	    camera = "Front";
-	    document.getElementById('camera').src = src="http://10.10.10.10:8080/javascript_simple.html";
+	    document.getElementById('camera').src = src="http://192.168.1.31:8080/javascript_simple.html";
             //socket.emit('keydown', 'cam1');
             break;
           case 50: // 2
             if(cam2IsDown) return;
             cam2IsDown = true;
 	    camera = "Back";
-	    document.getElementById('camera').src = src="http://10.10.10.10:8081/javascript_simple.html";
+	    document.getElementById('camera').src = src="http://192.168.1.31:8081/javascript_simple.html";
             //socket.emit('keydown', 'cam2');
             break;
           case 48: // 0
@@ -122,7 +122,7 @@
           case 87:
             if(!wIsDown) return;
             wIsDown = false;
-            socket.emit('keyup', 'up');
+            socket.emit('keyup', 'forward');
             break;
           case 65:
             if(!aIsDown) return;
@@ -132,7 +132,7 @@
           case 83:
             if(!sIsDown) return;
             sIsDown = false;
-            socket.emit('keyup', 'dive');
+            socket.emit('keyup', 'reverse');
             break;
           case 68:
             if(!dIsDown) return;
@@ -152,7 +152,7 @@
           case 73:
             if(!iIsDown) return;
             iIsDown = false;
-            socket.emit('keyup', 'forward');
+            socket.emit('keyup', 'up');
             break;
           case 74:
             if(!jIsDown) return;
@@ -162,7 +162,7 @@
           case 75:
             if(!kIsDown) return;
             kIsDown = false;
-            socket.emit('keyup', 'reverse');
+            socket.emit('keyup', 'dive');
             break;
           case 76:
             if(!lIsDown) return;
@@ -245,7 +245,7 @@ iframe{
 
   <body bgcolor="#00000000">
 
- <iframe id="camera" src="http://10.10.10.10:8080/javascript_simple.html" allowtransparency="true"></iframe>
+ <iframe id="camera" src="http://192.168.1.31:8080/javascript_simple.html" allowtransparency="true"></iframe>
 
 <div id="canvasesdiv" style="position:relative; width:900px; height:600px">
 <canvas id="rovCanvas" width="900px" height="600px" style="z-index: 100"></canvas>
@@ -253,11 +253,11 @@ iframe{
 
 <script type="text/javascript">  
 var cam1_window = function() {
-window.open("http://10.10.10.10:8080/javascript_simple.html", "CAMERA 1", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
+window.open("http://192.168.1.31:8080/javascript_simple.html", "CAMERA 1", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
 window.blur();
 }
 var cam2_window = function() {
-window.open("http://10.10.10.10:8081/javascript_simple.html", "CAMERA 2", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
+window.open("http://192.168.1.31:8081/javascript_simple.html", "CAMERA 2", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=810, height=610", border="0");
 window.blur();
 }
 </script>
@@ -272,6 +272,7 @@ var socket = io.connect();
 var constatus = "Not connected";
 var rov_canvas = document.getElementById('rovCanvas');
 var rov_context = rov_canvas.getContext('2d');
+
 var x = 80;
 var y = 30;
 var mbar = 0;
@@ -286,6 +287,7 @@ var current = 0;
 var lights = false;
 var hover = false;
 var camera = "Front";
+
 var gamepad_detected = false;
 var gamepadSupportAvailable = navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
 var button_pressed = new Array(16);
@@ -317,7 +319,7 @@ function checkTime(i) {
   return i;
 }
 
-function gamepad() {
+function readgamepad() {
 
   var value;
   var pressed;
@@ -326,8 +328,12 @@ function gamepad() {
   var buttons = gamepad.buttons.length;
 
   if (gamepad) {
+//       socket.emit("gamepad","gamepad loop");
+
+// Init
     if (!gamepad_detected) { 
        socket.emit("gamepad",gamepad.id);
+       socket.emit("gamepad","index "+gamepad.index);
        socket.emit("gamepad",axes+" Axes" );
        socket.emit("gamepad",buttons+" Buttons" );
        for (i=0 ; i < axes ; i++) {
@@ -338,6 +344,8 @@ function gamepad() {
        }
        gamepad_detected = true;
     }
+
+// Check button
   for (i=0 ; i <= gamepad.buttons.length ; i++) {
     if (typeof(gamepad.buttons[i]) == 'object') {
           value = gamepad.buttons[i].value;
@@ -468,7 +476,41 @@ function display(rovdata) {
     rov_context.fillText( ": N/A", 720, 40);
     rov_context.fillText( ": N/A", 720, 60);
   }
- 
+
+// Visual Gamepad Axis
+  rov_context.beginPath();
+  rov_context.strokeStyle = "#aaaa55";
+  rov_context.arc((rov_canvas.width/2)-300, (rov_canvas.height/2)+60, 30, 0, 2*Math.PI);
+  rov_context.stroke();
+  rov_context.beginPath();
+  rov_context.arc((rov_canvas.width/2)-200, (rov_canvas.height/2)+60, 30, 0, 2*Math.PI);
+  rov_context.stroke();
+
+// Green cross
+  rov_context.strokeStyle = "#00aa00";
+  rov_context.beginPath();
+  rov_context.moveTo((rov_canvas.width/2)-300-15,rov_canvas.height/2+60);
+  rov_context.lineTo((rov_canvas.width/2)-300+15,rov_canvas.height/2+60);
+  rov_context.moveTo((rov_canvas.width/2)-200-15,rov_canvas.height/2+60);
+  rov_context.lineTo((rov_canvas.width/2)-200+15,rov_canvas.height/2+60);
+  rov_context.moveTo((rov_canvas.width/2)-300,rov_canvas.height/2+60-15);
+  rov_context.lineTo((rov_canvas.width/2)-300,rov_canvas.height/2+60+15);
+  rov_context.moveTo((rov_canvas.width/2)-200,rov_canvas.height/2+60-15);
+  rov_context.lineTo((rov_canvas.width/2)-200,rov_canvas.height/2+60+15);
+   rov_context.stroke();
+
+// Red dot Gamepad
+   rov_context.beginPath();
+   rov_context.fillStyle = "#aa0000";
+  rov_context.arc((rov_canvas.width/2)-300+Math.floor(axis_value[0]*20), (rov_canvas.height/2)+60+Math.floor(axis_value[1]*20), 5, 0, 2*Math.PI);
+   rov_context.fill();
+
+  rov_context.beginPath();
+  rov_context.fillStyle = "#aa0000";
+  rov_context.arc((rov_canvas.width/2)-200+Math.floor(axis_value[2]*20), (rov_canvas.height/2)+60+Math.floor(axis_value[3]*20), 5, 0, 2*Math.PI);
+  rov_context.fill();
+
+
 // HUD
   rov_context.beginPath();
   rov_context.fillStyle = "#aa0000";
@@ -554,10 +596,10 @@ function display(rovdata) {
   rov_context.lineWidth = 1;
   rov_context.beginPath();
 
-  rov_context.rect((rov_canvas.width/2) - 80 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 2);
-  rov_context.rect((rov_canvas.width/2) - 30 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 2);
-  rov_context.rect((rov_canvas.width/2) + 30 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 2);
-  rov_context.rect((rov_canvas.width/2) + 80 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 2);
+  rov_context.rect((rov_canvas.width/2) - 80 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 4);
+  rov_context.rect((rov_canvas.width/2) - 30 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 4);
+  rov_context.rect((rov_canvas.width/2) + 30 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 4);
+  rov_context.rect((rov_canvas.width/2) + 80 - 10, rov_canvas.height/2+150 -2 , 20, 100 + 4);
   rov_context.stroke();
 
   rov_context.beginPath();
@@ -624,27 +666,27 @@ function display(rovdata) {
       rov_context.fillStyle = "#aa0000";
       rov_context.fillText( "OFF", 750, 250);
   }
-  rov_context.stroke();
+  rov_context.fill();
 
 // Show gamepad support browser
    if (!gamepadSupportAvailable) {
       rov_context.beginPath();
-      rov_context.strokeStyle = "#aa0000";
+      rov_context.fillStyle = "#aa0000";
       rov_context.font = '10pt Verdana';
       rov_context.fillText("Gamepad NOT supported by browser!",600,rov_canvas.height-5);
-      rov_context.stroke();
+      rov_context.fill();
     } else {
       rov_context.beginPath();
-      rov_context.strokeStyle = "#aa0000";
+      rov_context.fillStyle = "#00aa00";
       rov_context.font = '10pt Verdana';
       rov_context.fillText("Gamepad supported by browser!",620,rov_canvas.height-5);
-      rov_context.stroke();
+      rov_context.fill();
     }
 }
 
 function mainloop() {
   display();
-  gamepad();
+  readgamepad();
 }
 
 function init() {

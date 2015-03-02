@@ -206,6 +206,7 @@ var servo = function(channel, position) {
 	servoMin  =  config.esc.engine_1.min;
 	servoMax  =  config.esc.engine_1.max;
 	BRAKE_ESC =  config.esc.engine_1.brake;
+	lastdir   =  config.esc.engine_1.last;
 	}
 
    if (config.esc.engine_2.channel == channel) { 
@@ -213,6 +214,7 @@ var servo = function(channel, position) {
 	servoMin  =  config.esc.engine_2.min;
 	servoMax  =  config.esc.engine_2.max;
 	BRAKE_ESC =  config.esc.engine_2.brake;
+	lastdir   =  config.esc.engine_2.last;
 	}
 
    if (config.esc.engine_3.channel == channel) { 
@@ -220,6 +222,7 @@ var servo = function(channel, position) {
 	servoMin  =  config.esc.engine_3.min;
 	servoMax  =  config.esc.engine_3.max;
 	BRAKE_ESC =  config.esc.engine_3.brake;
+	lastdir   =  config.esc.engine_3.last;
 	}
 
    if (config.esc.engine_4.channel == channel) { 
@@ -227,6 +230,7 @@ var servo = function(channel, position) {
 	servoMin  =  config.esc.engine_4.min;
 	servoMax  =  config.esc.engine_4.max;
 	BRAKE_ESC =  config.esc.engine_4.brake;
+	lastdir   =  config.esc.engine_4.last;
 	}
 
    if (position == "init") {
@@ -240,7 +244,7 @@ var servo = function(channel, position) {
    if (position == "reverse") {
      movement = servoStop+((servoMax-servoStop)/100*power);
      pwm.setPwm(channel, 0, movement);
-     if (BRAKE_ESC) {
+     if ((BRAKE_ESC) && (lastdir == "forward")) {
        console.log("servo BREAK");
        pwm.setPwm(channel, 0, servoStop);
        sleep(3);
@@ -251,12 +255,6 @@ var servo = function(channel, position) {
    if (position == "forward") {
      movement = servoStop-((servoStop-servoMin)/100*power);
      pwm.setPwm(channel, 0, movement);
-     if (BRAKE_ESC) {
-       console.log("servo BREAK");
-       pwm.setPwm(channel, 0, servoStop);
-       sleep(250);
-       pwm.setPwm(channel, 0, movement);
-     } 
    }
 
    if (position == "stop") {
@@ -273,7 +271,7 @@ io.on('connection', function(socket){
 
 var gamepadctrl = function(gamepad) {
   var event;
-//  console.log ('Gamepad %s',gamepad);
+  console.log ('Gamepad %s',gamepad);
   var res = gamepad.split(" ");
 //  console.log ('Gamepad res:'+res);
   if (res[0] == "button") {
@@ -529,36 +527,36 @@ imuserver.on('message', function (message, remote) {
     socket.emit("command",event);
     switch (event) {
 	case 'up':
-           motor_1("reverse");
-           motor_2("reverse");
+           motor_3("reverse");
+           motor_4("reverse");
           break;
 	case 'dive':
-           motor_1("forward");
-           motor_2("forward");
+           motor_3("forward");
+           motor_4("forward");
           break;
 	case 'left':
-           motor_3("forward");
-           motor_4("reverse");
-          break;
-	case 'right':
-           motor_3("reverse");
-           motor_4("forward");
-          break;
-	case 'forward':
-           motor_3("forward");
-           motor_4("forward");
-          break;
-	case 'reverse':
-           motor_3("reverse");
-           motor_4("reverse");
-          break;
-	case 'strafe_l':
            motor_1("forward");
            motor_2("reverse");
           break;
-	case 'strafe_r':
+	case 'right':
            motor_1("reverse");
            motor_2("forward");
+          break;
+	case 'forward':
+           motor_1("forward");
+           motor_2("forward");
+          break;
+	case 'reverse':
+           motor_1("reverse");
+           motor_2("reverse");
+          break;
+	case 'strafe_l':
+           motor_3("forward");
+           motor_4("reverse");
+          break;
+	case 'strafe_r':
+           motor_3("reverse");
+           motor_4("forward");
           break;
 	case 'hover':
             if (hoveractive == false) {
