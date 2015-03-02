@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Raspberry PI ROV (V0.1.2)</title>
+    <title>Raspberry PI ROV (V0.2.1)</title>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -282,7 +282,9 @@ var depth = 0;
 var heading = 0;
 var pitch = 0;
 var roll = 0;
+var volt_raw = 0;
 var volt = 0;
+var current_raw = 0;
 var current = 0;
 var lights = false;
 var hover = false;
@@ -411,8 +413,10 @@ function update(rovdata) {
   }
   depth = Math.round(rovdata.mbar - mbar);
   temp = rovdata.temp;
-  volt = rovdata.volt;
-  current = rovdata.current;
+  volt_raw = rovdata.volt;
+  volt = volt_raw.toFixed(2);
+  current_raw = rovdata.current;
+  current = current_raw.toFixed(2);
   heading = rovdata.heading;
   pitch = rovdata.pitch;
   roll = rovdata.roll;
